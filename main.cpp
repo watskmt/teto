@@ -1,53 +1,129 @@
 #include "DxLib.h"
-#define WIDTH 10
-#define HEIGHT 10
-#define CELL_SIZE 40
-#define MARGIN_X 100
-#define MARGIN_Y 10
-#define WINDOW_WIDTH CELL_SIZE * WIDTH+MARGIN_X * 2
-#define WINDOW_HEIGHT CELL_SIZE * HEIGHT+MARGIN_Y * 2
 
-typedef struct Point // 座標用の構造体
+#define WIDTH 10
+#define HEIGHT 20
+#define CELL_SIZE 30
+#define MARGIN_X 60
+#define MARGIN_Y 10
+#define WINDOW_WIDTH (CELL_SIZE * WIDTH + MARGIN_X * 2)
+#define WINDOW_HEIGHT (CELL_SIZE * HEIGHT + MARGIN_Y * 2)
+
+// ===== 構造体 =====
+typedef struct Point
 {
     int x;
     int y;
-}Point;
+} Point;
 
-typedef struct Block // ブロックの構造体名
+typedef struct Block
 {
     int x;
     int y;
     int type;
     int rotation;
-}Block;
+} Block;
 
-// 左上原点 → 左下原点に変換する関数 
-Point ConvertTopLeftToBottomLeft(Point p);
-
-void initializeDrawScreen(void);
-void DrawCell(int x, int y);
-Point GameBoardToScreen(Point p);
-
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+// ===== ブロック種類 =====
+enum
 {
-    int cellSizeX = WINDOW_WIDTH / WIDTH;
-    int cellSizeY = WINDOW_HEIGHT / HEIGHT;
+    BLOCK_I,
+    BLOCK_O,
+    BLOCK_T,
+    BLOCK_S,
+    BLOCK_Z,
+    BLOCK_J,
+    BLOCK_L
+};
+
+// ===== ミノ形状 =====
+int mino[7][4][4] =
+{
+    { // I
+        {0,0,0,0},
+        {1,1,1,1},
+        {0,0,0,0},
+        {0,0,0,0}
+    },
+    { // O
+        {0,1,1,0},
+        {0,1,1,0},
+        {0,0,0,0},
+        {0,0,0,0}
+    },
+    { // T
+        {0,1,0,0},
+        {1,1,1,0},
+        {0,0,0,0},
+        {0,0,0,0}
+    },
+    { // S
+        {0,1,1,0},
+        {1,1,0,0},
+        {0,0,0,0},
+        {0,0,0,0}
+    },
+    { // Z
+        {1,1,0,0},
+        {0,1,1,0},
+        {0,0,0,0},
+        {0,0,0,0}
+    },
+    { // J
+        {1,0,0,0},
+        {1,1,1,0},
+        {0,0,0,0},
+        {0,0,0,0}
+    },
+    { // L
+        {0,0,1,0},
+        {1,1,1,0},
+        {0,0,0,0},
+        {0,0,0,0}
+    }
+};
+
+// ===== 関数宣言 =====
+Point ConvertTopLeftToBottomLeft(Point p);
+Point GameBoardToScreen(Point p);
+void initializeDrawScreen(void);
+void DrawCell(int x, int y, int color);
+int GetBlockColor(int type);
+
+// ===== メイン =====
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+{
     ChangeWindowMode(TRUE);
     SetGraphMode(WINDOW_WIDTH, WINDOW_HEIGHT, 32);
-    SetMainWindowText(L"DXLib Project");
 
-    if (DxLib_Init() == -1)
-    {
-        return -1;
-    }
+    if (DxLib_Init() == -1) return -1;
 
     SetDrawScreen(DX_SCREEN_BACK);
+
+    // テストブロック
+    Block block;
+    block.x = 3;
+    block.y = 10;
+    block.type = BLOCK_T;
+    block.rotation = 0;
 
     while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
     {
         ClearDrawScreen();
 
-		initializeDrawScreen();
+        // グリッド
+        initializeDrawScreen();
+
+        // ===== ミノ描画 =====
+        for (int y = 0; y < 4; y++)
+        {
+            for (int x = 0; x < 4; x++)
+            {
+                if (mino[block.type][y][x] == 1)
+                {
+                    DrawCell(block.x + x, block.y + y, GetBlockColor(block.type));
+                }
+            }
+        }
 
         ScreenFlip();
     }
@@ -56,56 +132,60 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     return 0;
 }
 
+// ===== グリッド描画 =====
 void initializeDrawScreen(void)
 {
     for (int y = 0; y < HEIGHT; y++)
     {
         for (int x = 0; x < WIDTH; x++)
         {
-            DrawCell(x, y);
+            DrawCell(x, y, GetColor(0, 0, 0));
         }
     }
 }
 
-// DrawCell: 指定した盤面座標のセルを画面に描画する。
-//    - 入力: Point p (x, y は左下基準のセル番号)
-//    - 出力: なし
-void DrawCell(int x, int y)
+// ===== セル描画 =====
+void DrawCell(int x, int y, int color)
 {
-    Point start = {x, y};
-	Point end = { x + 1, y + 1 };
-    Point converted_start = GameBoardToScreen(start);
-    Point converted_end = GameBoardToScreen(end);
+    Point start = { x, y };
+    Point end = { x + 1, y + 1 };
 
-    DrawBox(converted_start.x, converted_start.y, converted_end.x - 1, converted_end.y - 1, GetColor(255, 255, 255), FALSE);
+    Point s = GameBoardToScreen(start);
+    Point e = GameBoardToScreen(end);
+
+    DrawBox(s.x, s.y, e.x - 1, e.y - 1, color, TRUE);
+    DrawBox(s.x, s.y, e.x - 1, e.y - 1, GetColor(255, 255, 255), FALSE);
 }
 
+// ===== 色 =====
+int GetBlockColor(int type)
+{
+    switch (type)
+    {
+    case BLOCK_I: return GetColor(0, 255, 255);
+    case BLOCK_O: return GetColor(255, 255, 0);
+    case BLOCK_T: return GetColor(128, 0, 128);
+    case BLOCK_S: return GetColor(0, 255, 0);
+    case BLOCK_Z: return GetColor(255, 0, 0);
+    case BLOCK_J: return GetColor(0, 0, 255);
+    case BLOCK_L: return GetColor(255, 165, 0);
+    }
+    return GetColor(255, 255, 255);
+}
 
-// 左上原点 (0,0 が左上) を左下原点 (0,0 が左下) に変換する関数を定義する。
-//    - 入力: Point p (x, y は左上原点座標)
-//    - 出力: Point r (x は変化なし、y は上下反転された値)
-//    - 変換式: r.y = (WINDOW_HEIGHT_ - 1) - p.y
-// 左上原点 -> 左下原点 に変換する関数
-
+// ===== 座標変換 =====
 Point ConvertTopLeftToBottomLeft(Point p)
 {
     Point r;
     r.x = p.x;
-    // 上下反転：描画領域の高さが WINDOW_HEIGHT の場合、y = 0 は最上部、
-    // 反転後は WINDOW_HEIGHT-1
     r.y = (WINDOW_HEIGHT - 1) - p.y;
     return r;
 }
 
-// 盤面座標（セル座標） -> スクリーン座標 に変換する関数
-//    入力：Point p　セル座標
-// 　　出力：そのセルの左下角のスクリーン座標
 Point GameBoardToScreen(Point p)
 {
     Point r;
     r.x = p.x * CELL_SIZE + MARGIN_X;
     r.y = p.y * CELL_SIZE + MARGIN_Y;
-
-	r = ConvertTopLeftToBottomLeft(r);
-    return r;
+    return ConvertTopLeftToBottomLeft(r);
 }
