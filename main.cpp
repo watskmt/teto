@@ -7,12 +7,21 @@
 #define WINDOW_WIDTH CELL_SIZE * WIDTH+MARGIN_X * 2
 #define WINDOW_HEIGHT CELL_SIZE * HEIGHT+MARGIN_Y * 2
 
-// Point 定義
-struct Point
+typedef struct Point // 座標用の構造体
 {
     int x;
     int y;
-};
+}Point;
+
+typedef struct Block // ブロックの構造体名
+{
+    int x;
+    int y;
+    int type;
+    int rotation;
+}Block;
+
+// 左上原点 → 左下原点に変換する関数 
 Point ConvertTopLeftToBottomLeft(Point p);
 
 void initializeDrawScreen(void);
