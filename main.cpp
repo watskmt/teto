@@ -7,6 +7,7 @@
 #define MARGIN_Y 10
 #define WINDOW_WIDTH (CELL_SIZE * WIDTH + MARGIN_X * 2)
 #define WINDOW_HEIGHT (CELL_SIZE * HEIGHT + MARGIN_Y * 2)
+#define EMPTY 0
 
 // ===== 構造体 =====
 typedef struct Point
@@ -22,6 +23,8 @@ typedef struct Block
     int type;
     int rotation;
 } Block;
+
+int board[HEIGHT][WIDTH];
 
 // ===== ブロック種類 =====
 enum
@@ -138,6 +141,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
     DxLib_End();
     return 0;
+}
+
+void InitBoard(void)
+{
+    for (int y = 0; y < HEIGHT; y++)
+    {
+        for (int x = 0; x < WIDTH; x++)
+        {
+            board[y][x] = EMPTY;
+        }
+    }
 }
 
 // ===== グリッド描画 =====
