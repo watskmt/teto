@@ -1,0 +1,7 @@
+.vs/
+tetris/Debug/
+tetris/x64/Debug/main.obj
+tetris/x64/
+x64/Debug/tetris.exe
+x64/
+Log.txt
