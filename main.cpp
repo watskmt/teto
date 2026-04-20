@@ -94,22 +94,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
     ChangeWindowMode(TRUE);
     SetGraphMode(WINDOW_WIDTH, WINDOW_HEIGHT, 32);
-
     if (DxLib_Init() == -1) return -1;
-
     SetDrawScreen(DX_SCREEN_BACK);
 
     // テストブロック
     Block block;
     block.x = 3;
-    block.y = 10;
+    block.y = 18;
     block.type = BLOCK_T;
     block.rotation = 0;
+
+    int lastFallTime = GetNowCount();
 
     while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
     {
         ClearDrawScreen();
 
+        if (GetNowCount() - lastFallTime >= 1000)
+        {
+            {
+                block.y--;//一マス下に落ちる
+                if (block.y < 0) block.y = 0; // 地面で止める
+                lastFallTime = GetNowCount();
+            }
+        }
         // グリッド
         initializeDrawScreen();
 
@@ -162,13 +170,13 @@ int GetBlockColor(int type)
 {
     switch (type)
     {
-    case BLOCK_I: return GetColor(0, 255, 255);
-    case BLOCK_O: return GetColor(255, 255, 0);
-    case BLOCK_T: return GetColor(128, 0, 128);
-    case BLOCK_S: return GetColor(0, 255, 0);
-    case BLOCK_Z: return GetColor(255, 0, 0);
-    case BLOCK_J: return GetColor(0, 0, 255);
-    case BLOCK_L: return GetColor(255, 165, 0);
+        case BLOCK_I: return GetColor(0, 255, 255);
+        case BLOCK_O: return GetColor(255, 255, 0);
+        case BLOCK_T: return GetColor(128, 0, 128);
+        case BLOCK_S: return GetColor(0, 255, 0);
+        case BLOCK_Z: return GetColor(255, 0, 0);
+        case BLOCK_J: return GetColor(0, 0, 255);
+        case BLOCK_L: return GetColor(255, 165, 0);
     }
     return GetColor(255, 255, 255);
 }
