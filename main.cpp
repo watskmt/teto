@@ -94,6 +94,7 @@ Point GameBoardToScreen(Point p);
 void initializeDrawScreen(void);
 void DrawCell(int x, int y, int color);
 int GetBlockColor(int type);
+int CanMove(Block block, int dx);
 
 // ===== メイン =====
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
@@ -113,6 +114,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
     int lastFallTime = GetNowCount();
 
+    // ★ エッジ検出用
+    int prevLeft = 0;
+    int prevRight = 0;
+
     while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
     {
         ClearDrawScreen();
@@ -125,6 +130,31 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
                 lastFallTime = GetNowCount();
             }
         }
+        // ===== キー入力 =====
+        int nowLeft = CheckHitKey(KEY_INPUT_LEFT);
+        int nowRight = CheckHitKey(KEY_INPUT_RIGHT);
+
+        // 左（1回押し）
+        if (nowLeft == 1 && prevLeft == 0)
+        {
+            if (CanMove(block, -1))
+            {
+                block.x--;
+            }
+        }
+
+        // 右（1回押し）
+        if (nowRight == 1 && prevRight == 0)
+        {
+            if (CanMove(block, 1))
+            {
+                block.x++;
+            }
+        }
+
+        prevLeft = nowLeft;
+        prevRight = nowRight;
+
         // グリッド
         initializeDrawScreen();
 
@@ -214,4 +244,24 @@ Point GameBoardToScreen(Point p)
     r.x = p.x * CELL_SIZE + MARGIN_X;
     r.y = p.y * CELL_SIZE + MARGIN_Y;
     return ConvertTopLeftToBottomLeft(r);
+}
+
+int CanMove(Block block, int dx)
+{
+    for (int y = 0; y < 4; y++)
+    {
+        for (int x = 0; x < 4; x++)
+        {
+            if (mino[block.type][y][x] == 1)
+            {
+                int nx = block.x + x + dx;
+
+                if (nx < 0 || nx >= WIDTH)
+                {
+                    return 0;
+                }
+            }
+        }
+    }
+    return 1;
 }
