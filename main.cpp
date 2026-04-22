@@ -1,4 +1,6 @@
 #include "DxLib.h"
+#include <stdlib.h>
+#include <time.h>
 
 #define WIDTH 10
 #define HEIGHT 20
@@ -8,6 +10,7 @@
 #define WINDOW_WIDTH (CELL_SIZE * WIDTH + MARGIN_X * 2)
 #define WINDOW_HEIGHT (CELL_SIZE * HEIGHT + MARGIN_Y * 2)
 #define EMPTY 0
+
 
 // ===== 構造体 =====
 typedef struct Point
@@ -95,6 +98,7 @@ int GetBlockColor(int type);
 // ===== メイン =====
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
+    srand(time(NULL));
     ChangeWindowMode(TRUE);
     SetGraphMode(WINDOW_WIDTH, WINDOW_HEIGHT, 32);
     if (DxLib_Init() == -1) return -1;
@@ -104,7 +108,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     Block block;
     block.x = 3;
     block.y = 18;
-    block.type = BLOCK_T;
+    block.type = rand() % 7;
     block.rotation = 0;
 
     int lastFallTime = GetNowCount();
