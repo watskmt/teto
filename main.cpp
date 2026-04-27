@@ -120,8 +120,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		initializeDrawScreen();
 		dropBlock(&block, interval);
 		moveBlock(&block);
-		drawBoard(block);
 		drawBlock(block);
+		drawBoard(block);
 
 		DxLib::ScreenFlip();
 	}
@@ -164,9 +164,11 @@ int moveBlock(Block* block)
 {
 	static int prevLeft = 0;
 	static int prevRight = 0;
+	static int prevDown = 0;
 
 	int nowLeft = CheckHitKey(KEY_INPUT_LEFT);
 	int nowRight = CheckHitKey(KEY_INPUT_RIGHT);
+	int nowDown = CheckHitKey(KEY_INPUT_DOWN);
 
 	if (nowLeft == 1 && prevLeft == 0)
 	{
@@ -183,9 +185,17 @@ int moveBlock(Block* block)
 			block->x++;
 		}
 	}
+	if (nowDown == 1 && prevDown == 0)
+	{
+		while (CanMove(*block, 0, -1))
+		{
+			block->y--;
+		}
+	}
 
 	prevLeft = nowLeft;
 	prevRight = nowRight;
+	prevDown = nowDown;
 	return 0;
 }
 
