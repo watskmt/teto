@@ -95,6 +95,7 @@ int isDropTiming(int);
 int dropBlock(Block* block, int dropInterval);
 int moveBlock(Block* block);
 int drawBlock(Block block);
+int drawBoard(Block block);
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
@@ -116,32 +117,31 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
 	{
 		ClearDrawScreen();
+		initializeDrawScreen();
 		dropBlock(&block, interval);
 		moveBlock(&block);
-		// グリッド
-		initializeDrawScreen();
-		drawBlock(block);
-		moveBlock(&block);
-
-		initializeDrawScreen();
-
-		for (int y = 0; y < HEIGHT; y++)
-		{
-			for (int x = 0; x < WIDTH; x++)
-			{
-				if (board[y][x] != EMPTY)
-				{
-					DrawCell(x, y, GetBlockColor(board[y][x] - 1));
-				}
-			}
-		}
-
+		drawBoard(block);
 		drawBlock(block);
 
 		DxLib::ScreenFlip();
 	}
 
 	DxLib::DxLib_End();
+	return 0;
+}
+
+int drawBoard(Block block)
+{
+	for (int y = 0; y < HEIGHT; y++)
+	{
+		for (int x = 0; x < WIDTH; x++)
+		{
+			if (board[y][x] != EMPTY)
+			{
+				DrawCell(x, y, GetBlockColor(board[y][x] - 1));
+			}
+		}
+	}
 	return 0;
 }
 
