@@ -96,6 +96,9 @@ int dropBlock(Block* block, int dropInterval);
 int moveBlock(Block* block);
 int drawBlock(Block block);
 int drawBoard(Block block);
+int GetMinoCell(int type, int rot, int x, int y);
+int CanRotate(Block block, int dir);
+int rotateBlock(Block* block);
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
@@ -120,6 +123,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		initializeDrawScreen();
 		dropBlock(&block, interval);
 		moveBlock(&block);
+		rotateBlock(&block);
 		drawBlock(block);
 		drawBoard(block);
 
@@ -151,7 +155,7 @@ int drawBlock(Block block)
 	{
 		for (int x = 0; x < 4; x++)
 		{
-			if (mino[block.type][y][x])
+			if (GetMinoCell(block.type, block.rotation, x, y))
 			{
 				DrawCell(block.x + x, block.y + y, GetBlockColor(block.type));
 			}
@@ -214,7 +218,7 @@ int dropBlock(Block* block, int dropInterval)
 			{
 				for (int x = 0; x < 4; x++)
 				{
-					if (mino[block->type][y][x])
+					if (GetMinoCell(block->type, block->rotation, x, y))
 					{
 						int bx = block->x + x;
 						int by = block->y + y;
@@ -230,6 +234,7 @@ int dropBlock(Block* block, int dropInterval)
 			block->x = 3;
 			block->y = 18;
 			block->type = rand() % 7;
+			block->rotation = 0;
 		}
 	}
 	return 0;
@@ -316,7 +321,7 @@ int CanMove(Block block, int dx, int dy)
 	{
 		for (int x = 0; x < 4; x++)
 		{
-			if (mino[block.type][y][x])
+			if (GetMinoCell(block.type, block.rotation, x, y))
 			{
 				int nx = block.x + x + dx;
 				int ny = block.y + y + dy;
@@ -330,4 +335,77 @@ int CanMove(Block block, int dx, int dy)
 		}
 	}
 	return 1;
+}
+
+//回転後の値を取得
+int GetMinoCell(int type, int rot, int x, int y)
+{
+	switch (rot % 4)
+	{
+		case 0: return mino[type][y][x];
+		case 1: return mino[type][3 - x][y];
+		case 2: return mino[type][3 - y][3 - x];
+		case 3: return mino[type][x][3 - y];
+	}
+	return 0;
+}
+
+//回転判定
+int CanRotate(Block block, int dir)
+{
+	int nextRot = (block.rotation + dir + 4) % 4;
+
+	for (int y = 0; y < 4; y++)
+	{
+		for (int x = 0; x < 4; x++)
+		{
+			if (GetMinoCell(block.type, nextRot, x, y))
+			{
+				int nx = block.x + x;
+				int ny = block.y + y;
+
+				if (nx < 0 || nx >= WIDTH || ny < 0 || ny >= HEIGHT)
+				{
+					return 0;
+				}
+				if (board[ny][nx] != EMPTY)
+				{
+					return 0;
+				}
+			}
+		}
+	}
+	return 1;
+}
+
+//回転処理
+int rotateBlock(Block* block)
+{
+	static int prevX = 0;
+	static int prevZ = 0;
+
+	int nowX = CheckHitKey(KEY_INPUT_X);
+	int nowZ = CheckHitKey(KEY_INPUT_Z);
+
+	// 時計回り（Xキー）
+	if (nowX == 1 && prevX == 0)
+	{
+		if (CanRotate(*block, -1))
+		{
+			block->rotation = (block->rotation + 1) % 4;
+		}
+	}
+
+	// 反時計回り（Zキー）
+	if (nowZ == 1 && prevZ == 0)
+	{
+		if (CanRotate(*block, 1))
+		{
+			block->rotation = (block->rotation - 1 + 4) % 4;
+		}
+	}
+
+	prevX = nowX;
+	prevZ = nowZ;
+	return 0;
 }
