@@ -350,9 +350,9 @@ int GetMinoCell(int type, int rot, int x, int y)
 	switch (rot % 4)
 	{
 		case 0: return mino[type][y][x];
-		case 1: return mino[type][3 - x][y];
+		case 1: return mino[type][x][3 - y];
 		case 2: return mino[type][3 - y][3 - x];
-		case 3: return mino[type][x][3 - y];
+		case 3: return mino[type][3 - x][y];
 	}
 	return 0;
 }
@@ -397,7 +397,7 @@ int rotateBlock(Block* block)
 	// 時計回り（Xキー）
 	if (nowX == 1 && prevX == 0)
 	{
-		if (CanRotate(*block, -1))
+		if (CanRotate(*block, 1))
 		{
 			block->rotation = (block->rotation + 1) % 4;
 		}
@@ -406,7 +406,7 @@ int rotateBlock(Block* block)
 	// 反時計回り（Zキー）
 	if (nowZ == 1 && prevZ == 0)
 	{
-		if (CanRotate(*block, 1))
+		if (CanRotate(*block, -1))
 		{
 			block->rotation = (block->rotation - 1 + 4) % 4;
 		}
