@@ -99,6 +99,7 @@ int drawBoard(Block block);
 int GetMinoCell(int type, int rot, int x, int y);
 int CanRotate(Block block, int dir);
 int rotateBlock(Block* block);
+void placeNew(Block* block);
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
@@ -121,7 +122,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	{
 		ClearDrawScreen();
 		initializeDrawScreen();
-		dropBlock(&block, interval);
+		if(dropBlock(&block, interval))
+			placeNew(&block);
 		moveBlock(&block);
 		rotateBlock(&block);
 		drawBlock(block);
@@ -205,6 +207,7 @@ int moveBlock(Block* block)
 
 int dropBlock(Block* block, int dropInterval)
 {
+	int stucked = 0;
 	// ★ 落下タイミングの検出
 	if (isDropTiming(dropInterval))
 	{
@@ -231,14 +234,18 @@ int dropBlock(Block* block, int dropInterval)
 				}
 			}
 
-			block->x = 3;
-			block->y = 18;
-			block->type = rand() % 7;
-			block->rotation = 0;
+			stucked = 1;
 		}
 	}
-	return 0;
+	return stucked;
 }
+void placeNew(Block* block)
+{
+	block->x = 3;
+	block->y = 18;
+	block->type = rand() % 7;
+}
+
 int isDropTiming(int dropInterval) {
 	static int lastFallTime = 0;
 	if (GetNowCount() - lastFallTime >= dropInterval)
