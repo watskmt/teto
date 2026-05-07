@@ -101,6 +101,7 @@ int drawBoard(Block block);
 int GetMinoCell(int type, int rot, int x, int y);
 int CanRotate(Block block, int dir);
 int rotateBlock(Block* block);
+int eraseBlock(void);
 void placeNew(Block* block);
 int CheckGameOver(Block block);
 
@@ -142,6 +143,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 		moveBlock(&block);
 		rotateBlock(&block);
+		eraseBlock();
 		drawBlock(block);
 		drawBoard(block);
 		DxLib::ScreenFlip();
@@ -217,6 +219,35 @@ int moveBlock(Block* block)
 	prevLeft = nowLeft;
 	prevRight = nowRight;
 	prevDown = nowDown;
+	return 0;
+}
+
+int eraseBlock()
+{
+	int x, y;
+	for(y = 0; y < HEIGHT; y++)
+	{
+		for (x = 0; x < WIDTH; x++)
+		{
+			if (board[y][x] == EMPTY)
+				break;
+		}
+		if (x == WIDTH)
+		{
+			for (int yy = y; yy < HEIGHT - 1; yy++)
+			{
+				for (int xx = 0; xx < WIDTH; xx++)
+				{
+					board[yy][xx] = board[yy + 1][xx];
+				}
+			}
+			for (int xx = 0; xx < WIDTH; xx++)
+			{
+				board[HEIGHT - 1][xx] = EMPTY;
+			}
+			y--;
+		}
+	}
 	return 0;
 }
 
