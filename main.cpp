@@ -11,6 +11,8 @@
 #define WINDOW_HEIGHT (CELL_SIZE * HEIGHT + MARGIN_Y * 2)
 #define EMPTY 0
 
+// ===== 構造体 =====  
+
 typedef struct Point
 {
 	int x;
@@ -100,6 +102,7 @@ int GetMinoCell(int type, int rot, int x, int y);
 int CanRotate(Block block, int dir);
 int rotateBlock(Block* block);
 void placeNew(Block* block);
+int CheckGameOver(Block block);
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
@@ -110,25 +113,37 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	if (DxLib_Init() == -1) return -1;
 	SetDrawScreen(DX_SCREEN_BACK);
 
-	InitBoard();
+    InitBoard();
 
-	Block block;
-	block.x = 3;
-	block.y = 18;
-	block.type = rand() % 7;
-	block.rotation = 0;
+    // テストブロック
+    Block block;
+    block.x = 3;
+    block.y = 18;
+    block.type = BLOCK_T;
+    block.rotation = 0;
+
+    int lastFallTime = GetNowCount();
 
 	while (ProcessMessage() == 0 && CheckHitKey(KEY_INPUT_ESCAPE) == 0)
 	{
 		ClearDrawScreen();
 		initializeDrawScreen();
-		if(dropBlock(&block, interval))
+		if (dropBlock(&block, interval))
+		{
 			placeNew(&block);
+			if (CheckGameOver(block))
+			{
+				DrawString(200, 300, _T("GAME OVER"), GetColor(255, 0, 0));
+				ScreenFlip();
+				WaitKey();
+				DxLib_End();
+				exit(0);
+			}
+		}
 		moveBlock(&block);
 		rotateBlock(&block);
 		drawBlock(block);
 		drawBoard(block);
-
 		DxLib::ScreenFlip();
 	}
 
@@ -235,6 +250,7 @@ int dropBlock(Block* block, int dropInterval)
 			}
 
 			stucked = 1;
+
 		}
 	}
 	return stucked;
@@ -415,4 +431,27 @@ int rotateBlock(Block* block)
 	prevX = nowX;
 	prevZ = nowZ;
 	return 0;
+}
+int CheckGameOver(Block block)
+{
+    for (int y = 0; y < 4; y++)
+    {
+        for (int x = 0; x < 4; x++)
+        {
+            if (mino[block.type][y][x] == 0)
+            {
+                continue;
+            }
+
+            int bx = block.x + x;
+            int by = block.y + y;
+
+            if (by < HEIGHT && board[by][bx] != EMPTY)
+            {
+                return 1;
+            }
+        }
+    }
+
+    return 0;
 }
