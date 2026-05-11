@@ -114,6 +114,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	if (DxLib_Init() == -1) return -1;
 	SetDrawScreen(DX_SCREEN_BACK);
 
+	int gameOverFont = CreateFontToHandle(
+		_T("Arial"),
+		40,
+		3
+	);
+
     InitBoard();
 
     // テストブロック
@@ -134,9 +140,55 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			placeNew(&block);
 			if (CheckGameOver(block))
 			{
-				DrawString(200, 300, _T("GAME OVER"), GetColor(255, 0, 0));
-				ScreenFlip();
-				WaitKey();
+				int alpha = 0;
+
+				// 徐々に暗転
+				while (alpha <= 180)
+				{
+					ClearDrawScreen();
+
+					initializeDrawScreen();
+					drawBoard(block);
+
+					// 今のミノも描画
+					drawBlock(block);
+
+					// 半透明黒
+					SetDrawBlendMode(DX_BLENDMODE_ALPHA, alpha);
+
+					DrawBox(
+						0,
+						0,
+						WINDOW_WIDTH,
+						WINDOW_HEIGHT,
+						GetColor(0, 0, 0),
+						TRUE
+					);
+
+					SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+					// 少し暗くなってから文字表示
+					if (alpha >= 100)
+					{
+						DrawStringToHandle(
+							105,
+							270,
+							_T("GAME OVER"),
+							GetColor(255, 0, 0),
+							gameOverFont
+						);
+					}
+
+					ScreenFlip();
+
+					alpha += 5;
+
+					WaitTimer(30);
+				}
+
+				// 最後に少し止める
+				WaitTimer(1500);
+
 				DxLib_End();
 				exit(0);
 			}
