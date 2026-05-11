@@ -107,7 +107,7 @@ int CheckGameOver(Block block);
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-	int interval = 100; // ブロックの落下間隔（ミリ秒）
+	int interval = 1000; // ブロックの落下間隔（ミリ秒）
 	srand((unsigned int)time(NULL));
 	ChangeWindowMode(TRUE);
 	SetGraphMode(WINDOW_WIDTH, WINDOW_HEIGHT, 32);
