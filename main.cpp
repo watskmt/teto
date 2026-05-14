@@ -32,6 +32,7 @@ int board[HEIGHT][WIDTH];
 int score = 0;
 int totalLines = 0;
 int nextType = 0;
+int holdType = 0;
 int scoreFont;
 
 enum
@@ -111,6 +112,8 @@ void placeNew(Block* block);
 int CheckGameOver(Block block);
 void drawScore(void);
 void drawNextBlock(void);
+int holdBlock(void);
+void drawHoldBlock(void);
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
@@ -131,6 +134,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
     InitBoard();
 
     nextType = rand() % 7;
+    holdType = rand() % 7;
 
     Block block;
     block.x = 3;
@@ -187,6 +191,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 							gameOverFont
 						);
 						drawNextBlock();
+						drawHoldBlock();
 						drawScore();
 					}
 
@@ -206,10 +211,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 		moveBlock(&block);
 		rotateBlock(&block);
+		holdBlock();
 		eraseBlock();
 		drawBlock(block);
 		drawBoard(block);
 		drawNextBlock();
+		drawHoldBlock();
 		drawScore();
 		DxLib::ScreenFlip();
 	}
@@ -567,18 +574,60 @@ void drawNextBlock(void)
 	}
 }
 
+int holdBlock(void)
+{
+	static int prevC = 0;
+	int nowC = CheckHitKey(KEY_INPUT_C);
+	if (nowC == 1 && prevC == 0)
+	{
+		int tmp = nextType;
+		nextType = holdType;
+		holdType = tmp;
+	}
+	prevC = nowC;
+	return 0;
+}
+
+void drawHoldBlock(void)
+{
+	int panelX = MARGIN_X + CELL_SIZE * WIDTH + 15;
+	int cellSize = 20;
+	int originY = 210;
+
+	DrawStringToHandle(panelX, 185, _T("KEEP"), GetColor(200, 200, 200), scoreFont);
+
+	for (int y = 0; y < 4; y++)
+	{
+		for (int x = 0; x < 4; x++)
+		{
+			int sx = panelX + x * cellSize;
+			int sy = originY + y * cellSize;
+			if (GetMinoCell(holdType, 0, x, y))
+			{
+				DrawBox(sx, sy, sx + cellSize - 1, sy + cellSize - 1, GetBlockColor(holdType), TRUE);
+				DrawBox(sx, sy, sx + cellSize - 1, sy + cellSize - 1, GetColor(255, 255, 255), FALSE);
+			}
+			else
+			{
+				DrawBox(sx, sy, sx + cellSize - 1, sy + cellSize - 1, GetColor(30, 30, 30), TRUE);
+				DrawBox(sx, sy, sx + cellSize - 1, sy + cellSize - 1, GetColor(60, 60, 60), FALSE);
+			}
+		}
+	}
+}
+
 void drawScore(void)
 {
 	int panelX = MARGIN_X + CELL_SIZE * WIDTH + 15;
 	TCHAR buf[32];
 
-	DrawStringToHandle(panelX, 230, _T("SCORE"), GetColor(200, 200, 200), scoreFont);
+	DrawStringToHandle(panelX, 340, _T("SCORE"), GetColor(200, 200, 200), scoreFont);
 	wsprintf(buf, _T("%d"), score);
-	DrawStringToHandle(panelX, 258, buf, GetColor(255, 255, 0), scoreFont);
-
-	DrawStringToHandle(panelX, 340, _T("LINES"), GetColor(200, 200, 200), scoreFont);
-	wsprintf(buf, _T("%d"), totalLines);
 	DrawStringToHandle(panelX, 368, buf, GetColor(255, 255, 0), scoreFont);
+
+	DrawStringToHandle(panelX, 450, _T("LINES"), GetColor(200, 200, 200), scoreFont);
+	wsprintf(buf, _T("%d"), totalLines);
+	DrawStringToHandle(panelX, 478, buf, GetColor(255, 255, 0), scoreFont);
 }
 
 int CheckGameOver(Block block)
