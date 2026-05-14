@@ -7,7 +7,8 @@
 #define CELL_SIZE 30
 #define MARGIN_X 60
 #define MARGIN_Y 10
-#define WINDOW_WIDTH (CELL_SIZE * WIDTH + MARGIN_X * 2)
+#define SCORE_PANEL_WIDTH 130
+#define WINDOW_WIDTH (CELL_SIZE * WIDTH + MARGIN_X * 2 + SCORE_PANEL_WIDTH)
 #define WINDOW_HEIGHT (CELL_SIZE * HEIGHT + MARGIN_Y * 2)
 #define EMPTY 0
 
@@ -28,6 +29,9 @@ typedef struct Block
 } Block;
 
 int board[HEIGHT][WIDTH];
+int score = 0;
+int totalLines = 0;
+int scoreFont;
 
 enum
 {
@@ -104,6 +108,7 @@ int rotateBlock(Block* block);
 int eraseBlock(void);
 void placeNew(Block* block);
 int CheckGameOver(Block block);
+void drawScore(void);
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
@@ -119,6 +124,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		40,
 		3
 	);
+	scoreFont = CreateFontToHandle(_T("Arial"), 20, 2);
 
     InitBoard();
 
@@ -177,6 +183,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 							GetColor(255, 0, 0),
 							gameOverFont
 						);
+						drawScore();
 					}
 
 					ScreenFlip();
@@ -198,6 +205,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		eraseBlock();
 		drawBlock(block);
 		drawBoard(block);
+		drawScore();
 		DxLib::ScreenFlip();
 	}
 
@@ -276,6 +284,7 @@ int moveBlock(Block* block)
 
 int eraseBlock()
 {
+	int lines = 0;
 	int x, y;
 	for(y = 0; y < HEIGHT; y++)
 	{
@@ -286,6 +295,7 @@ int eraseBlock()
 		}
 		if (x == WIDTH)
 		{
+			lines++;
 			for (int yy = y; yy < HEIGHT - 1; yy++)
 			{
 				for (int xx = 0; xx < WIDTH; xx++)
@@ -300,7 +310,13 @@ int eraseBlock()
 			y--;
 		}
 	}
-	return 0;
+
+	static const int scoreTable[] = {0, 100, 300, 500, 800};
+	if (lines >= 1 && lines <= 4)
+		score += scoreTable[lines];
+	totalLines += lines;
+
+	return lines;
 }
 
 int dropBlock(Block* block, int dropInterval)
@@ -515,6 +531,20 @@ int rotateBlock(Block* block)
 	prevZ = nowZ;
 	return 0;
 }
+void drawScore(void)
+{
+	int panelX = MARGIN_X + CELL_SIZE * WIDTH + 15;
+	TCHAR buf[32];
+
+	DrawStringToHandle(panelX, 80, _T("SCORE"), GetColor(200, 200, 200), scoreFont);
+	wsprintf(buf, _T("%d"), score);
+	DrawStringToHandle(panelX, 108, buf, GetColor(255, 255, 0), scoreFont);
+
+	DrawStringToHandle(panelX, 180, _T("LINES"), GetColor(200, 200, 200), scoreFont);
+	wsprintf(buf, _T("%d"), totalLines);
+	DrawStringToHandle(panelX, 208, buf, GetColor(255, 255, 0), scoreFont);
+}
+
 int CheckGameOver(Block block)
 {
     for (int y = 0; y < 4; y++)
